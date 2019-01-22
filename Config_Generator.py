@@ -140,7 +140,7 @@ def gen_server():
         "settings": {
           "clients": [
             {
-                "id": "bc861c84-05b5-45f9-bb78-ff4c15b6fb77",
+                "id": "",
                 "email": "a@mail",
                 "level": 0,
                 "alterId": 39
@@ -162,7 +162,6 @@ def gen_server():
           "wsSettings": {}
           },
           "tlsSettings": {}
-        }
       },
       {
         "settings": {
@@ -180,7 +179,7 @@ def gen_server():
     if data['protocol'] == "vmess":
         server['inbounds'][0]['port'] = int(data['port'])
         server['inbounds'][0]['settings']['clients'][0]['id'] = data['uuid']
-        server['inbounds'][0]['settings']['clients'][0]['security'] = data['encrypt']
+        #server['inbounds'][0]['settings']['clients'][0]['security'] = data['encrypt']
 
     elif data['protocol'] == "mtproto":
         """ MTProto don't needs client config, just use Telegram"""
@@ -220,6 +219,7 @@ def gen_server():
         server['inbounds'][0]['streamSettings'] = dict()
         server['inbounds'][0]['streamSettings']['network'] = "ws"
         server['inbounds'][0]['streamSettings']['wsSettings'] = server_websocket
+        server['inbounds'][0]['streamSettings']['wsSettings']['path'] = "/" + data['path']
         server['inbounds'][0]['streamSettings']['wsSettings']['headers']['Host'] = data['domain']
 
     if data['tls'] == "on":
@@ -238,7 +238,7 @@ def gen_client():
     {
     "log": {
         "error": "error.log",
-        "loglevel": "info"
+        "loglevel": "warning"
     },
     "inbound": {
         "port": 1080,

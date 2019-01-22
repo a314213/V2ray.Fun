@@ -49,14 +49,12 @@ def get_stats(is_reset=False):
             print("当前无流量数据，请使用流量片刻再来查看统计!")
             return
         downlink_value = int(re_result[0])
-        # test = re_result[0]
 
     stats_real_cmd = stats_cmd % ("62105", "inbound", "main", "uplink", is_reset)
     uplink_result = os.popen(stats_real_cmd).readlines()
     if uplink_result and len(uplink_result) == 5:
         re_result = re.findall(r"\d+", uplink_result[2])
-        uplink_value = int(re_result[0])
-        # test += re_result[0]
+        uplink_value = int(re_result[0])      
 
 def get_status():
     cmd = """ps -ef | grep "v2ray" | grep -v grep | awk '{print $2}'"""
@@ -179,6 +177,7 @@ def set_trans():
     elif trans == "2":
         change_config("trans", "websocket")
         change_config("domain", items['domain'])
+        change_config("path",items['path'])
     elif trans == "3":
         change_config("trans", "mkcp")
         change_config("domain", "none")
@@ -220,41 +219,46 @@ def config_page():
     return render_template("config.html")
 
 
-# @app.route('/get_info')
-# def get_info():
-#     v2ray_config = open("v2ray.config","r")
-#     json_content = json.loads(v2ray_config.read())
-#     if(json_content['domain'] != "none"):
-#         json_content['ip'] = json_content['domain']
-
-#     json_content['status'] = get_status()
-#     json_dump = json.dumps(json_content)
-#     v2ray_config.close()
-
-#     return json_dump
 @app.route('/get_info')
 def get_info():
     global downlink_value
     global uplink_value
-    global test
     get_stats()
     v2ray_config = open("v2ray.config","r")
-    return_json = json.loads(v2ray_config.read())
-    v2ray_config.close()
-    v2ray_config = open("/etc/v2ray/config.json","r")
     json_content = json.loads(v2ray_config.read())
+    if(json_content['domain'] != "none"):
+        json_content['ip'] = json_content['domain']
+
+    json_content['status'] = get_status()
+    json_content['u'] = uplink_value
+    json_content['d'] = downlink_value
+    json_dump = json.dumps(json_content)
     v2ray_config.close()
-    return_json['encrypt'] = "auto"
-    if (json_content['inbounds'][0]['streamSettings']['security'] != "none"):
-        return_json['encrypt'] = json_content['inbounds'][0]['streamSettings']['security']
-    return_json['uuid'] = json_content['inbounds'][0]['settings']['clients'][0]['id']
-    return_json['trans'] = json_content['inbounds'][0]['streamSettings']['network']
-    return_json['port'] = json_content['inbounds'][0]['port']
-    return_json['status'] = get_status()
-    return_json['u'] = uplink_value
-    return_json['d'] = downlink_value
-    json_dump = json.dumps(return_json)
+
     return json_dump
+# @app.route('/get_info')
+# def get_info():
+#     global downlink_value
+#     global uplink_value
+#     global test
+#     get_stats()
+#     v2ray_config = open("v2ray.config","r")
+#     return_json = json.loads(v2ray_config.read())
+#     v2ray_config.close()
+#     v2ray_config = open("/etc/v2ray/config.json","r")
+#     json_content = json.loads(v2ray_config.read())
+#     v2ray_config.close()
+#     return_json['encrypt'] = "auto"
+#     if (json_content['inbounds'][0]['streamSettings']['security'] != "none"):
+#         return_json['encrypt'] = json_content['inbounds'][0]['streamSettings']['security']
+#     return_json['uuid'] = json_content['inbounds'][0]['settings']['clients'][0]['id']
+#     return_json['trans'] = json_content['inbounds'][0]['streamSettings']['network']
+#     return_json['port'] = json_content['inbounds'][0]['port']
+#     return_json['status'] = get_status()
+#     return_json['u'] = uplink_value
+#     return_json['d'] = downlink_value
+#     json_dump = json.dumps(return_json)
+#     return json_dump
 
 @app.route('/get_access_log')
 def get_access_log():

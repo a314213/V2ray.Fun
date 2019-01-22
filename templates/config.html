@@ -210,6 +210,7 @@
                                                     <div class="mdui-col-md-2"></div>
                                                     <div class="mdui-col-md-6">
                                                             <input id="ws_input_domain" class="mdui-textfield-input" placeholder="请输入域名（无需http://）" value="" />
+                                                            <input id="ws_input_path" class="mdui-textfield-input" placeholder="请输入path" value="" />
                                                     </div>
                                                 </div>
                                                 <p></p>
@@ -451,7 +452,7 @@
     }
 
     function set_websocket() {
-        let result = "trans=2&domain=" + document.getElementById('ws_input_domain').value;
+        let result = "trans=2&domain=" + document.getElementById('ws_input_domain').value+"&path="+ document.getElementById('ws_input_path').value;
         $.get("/set_trans",result);
         message("传输方式已修改");
 
