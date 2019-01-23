@@ -36,25 +36,29 @@ def get_stats(is_reset=False):
     global downlink_value
     global uplink_value
     global test
-    is_reset = "true" if is_reset else "false"
+    try:
+        is_reset = "true" if is_reset else "false"
 
-    stats_cmd = "cd /usr/bin/v2ray && ./v2ctl api --server=127.0.0.1:%s StatsService.GetStats 'name: \"%s>>>%s>>>traffic>>>%s\" reset: %s'"
+        stats_cmd = "cd /usr/bin/v2ray && ./v2ctl api --server=127.0.0.1:%s StatsService.GetStats 'name: \"%s>>>%s>>>traffic>>>%s\" reset: %s'"
 
-    stats_real_cmd = stats_cmd % ("62105", "inbound", "main", "downlink", is_reset)
-    downlink_result = os.popen(stats_real_cmd).readlines()
+        stats_real_cmd = stats_cmd % ("62105", "inbound", "main", "downlink", is_reset)
+        downlink_result = os.popen(stats_real_cmd).readlines()
 
-    if downlink_result and len(downlink_result) == 5:
-        re_result = re.findall(r"\d+", downlink_result[2])
-        if not re_result:
-            print("当前无流量数据，请使用流量片刻再来查看统计!")
-            return
-        downlink_value = int(re_result[0])
+        if downlink_result and len(downlink_result) == 5:
+            re_result = re.findall(r"\d+", downlink_result[2])
+            if not re_result:
+                print("当前无流量数据，请使用流量片刻再来查看统计!")
+                return
+            downlink_value = int(re_result[0])
 
-    stats_real_cmd = stats_cmd % ("62105", "inbound", "main", "uplink", is_reset)
-    uplink_result = os.popen(stats_real_cmd).readlines()
-    if uplink_result and len(uplink_result) == 5:
-        re_result = re.findall(r"\d+", uplink_result[2])
-        uplink_value = int(re_result[0])      
+        stats_real_cmd = stats_cmd % ("62105", "inbound", "main", "uplink", is_reset)
+        uplink_result = os.popen(stats_real_cmd).readlines()
+        if uplink_result and len(uplink_result) == 5:
+            re_result = re.findall(r"\d+", uplink_result[2])
+            uplink_value = int(re_result[0])  
+    except:
+        pass
+    
 
 def get_status():
     cmd = """ps -ef | grep "v2ray" | grep -v grep | awk '{print $2}'"""
@@ -135,6 +139,13 @@ def set_mux():
     gen_client()
     return "OK"
 
+@app.route('/set_nginx',methods=['GET', 'POST'])
+def set_nginx():
+    items = request.args.to_dict()
+    change_config("nginx",items['action'])
+    gen_client()
+    return "OK"
+
 @app.route('/set_port',methods=['GET', 'POST'])
 def set_port():
     items = request.args.to_dict()
@@ -192,7 +203,7 @@ def set_trans():
         change_config("domain", "none")
 
     gen_server()
-    #gen_client()
+    gen_client()
     restart_service()
 
     return "OK"

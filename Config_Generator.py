@@ -223,10 +223,11 @@ def gen_server():
         server['inbounds'][0]['streamSettings']['wsSettings']['headers']['Host'] = data['domain']
 
     if data['tls'] == "on":
-        server['inbounds'][0]['streamSettings']['security'] = "tls"
-        server_tls['certificates'][0]['certificateFile'] = "/root/.acme.sh/{0}/fullchain.cer".format(data['domain'])
-        server_tls['certificates'][0]['keyFile'] = "/root/.acme.sh/{0}/{0}.key".format(data['domain'],data['domain'])
-        server['inbounds'][0]['streamSettings']['tlsSettings'] = server_tls
+        if data['nginx'] != "on":
+            server['inbounds'][0]['streamSettings']['security'] = "tls"
+            server_tls['certificates'][0]['certificateFile'] = "/root/.acme.sh/{0}/fullchain.cer".format(data['domain'])
+            server_tls['certificates'][0]['keyFile'] = "/root/.acme.sh/{0}/{0}.key".format(data['domain'],data['domain'])
+            server['inbounds'][0]['streamSettings']['tlsSettings'] = server_tls
 
     server_file = open("/etc/v2ray/config.json","w")
     server_file.write(json.dumps(server,indent=2))
@@ -235,103 +236,150 @@ def gen_server():
 
 def gen_client():
     client_raw = """
-    {
-    "log": {
-        "error": "error.log",
-        "loglevel": "warning"
+   {
+  "log": {
+    "loglevel": "warning"
+  },
+  "inbounds": [
+  {
+    "port": 1088,
+    "listen": "0.0.0.0",
+    "protocol": "http",
+    "settings": {
+      "auth": "noauth",
+      "udp": true
     },
-    "inbound": {
-        "port": 1080,
-        "listen": "127.0.0.1",
-        "protocol": "socks",
-        "settings": {
-            "auth": "noauth",
-            "ip": "127.0.0.1"
-        }
-    },
-    "outbound": {
-        "protocol": "vmess",
-        "settings": {
-            "vnext": [
-                {
-                    "address": "",
-                    "port": 39885,
-                    "users": [
-                        {
-                            "id": "475161c6-837c-4318-a6bd-e7d414697de5",
-                            "alterId": 100,
-                            "security": "auto"
-                        }
-                    ]
-                }
-            ]
-        },
-        "streamSettings": {
-            "network": "ws"
-        },
-        "mux": {
-            "enabled": false
-        }
-    },
-    "inboundDetour": null,
-    "outboundDetour": [
-        {
-            "protocol": "freedom",
-            "settings": {},
-            "tag": "direct"
-        }
-    ],
-    "dns": {
-        "servers": [
-            "8.8.8.8",
-            "8.8.4.4",
-            "localhost"
-        ]
-    },
-    "routing": {
-        "strategy": "rules",
-        "settings": {
-            "domainStrategy": "IPIfNonMatch",
-            "rules": [
-                {
-                    "type": "field",
-                    "ip": [
-                        "0.0.0.0/8",
-                        "10.0.0.0/8",
-                        "100.64.0.0/10",
-                        "127.0.0.0/8",
-                        "169.254.0.0/16",
-                        "172.16.0.0/12",
-                        "192.0.0.0/24",
-                        "192.0.2.0/24",
-                        "192.168.0.0/16",
-                        "198.18.0.0/15",
-                        "198.51.100.0/24",
-                        "203.0.113.0/24",
-                        "::1/128",
-                        "fc00::/7",
-                        "fe80::/10",
-                        "geoip:cn"
-                    ],
-                    "domain": [
-                        "geosite:cn"
-                    ],
-                    "outboundTag": "direct"
-                },
-                {
-                    "type": "chinasites",
-                    "outboundTag": "direct"
-                },
-                {
-                    "type": "chinaip",
-                    "outboundTag": "direct"
-                }
-            ]
-        }
+    "streamSettings": {
+      "sockopt": {
+        "mark": 255
+      }
     }
+  },
+  {
+    "port": 1099,
+    "listen": "0.0.0.0",
+    "protocol": "dokodemo-door",
+    "settings": {
+      "network": "tcp,udp",
+      "timeout": 360,
+      "followRedirect": true
+    }
+  },
+  {
+    "port": 1100,
+    "listen": "0.0.0.0",
+    "protocol": "dokodemo-door",
+    "settings": {
+      "address": "8.8.8.8",
+      "port": 53,
+      "network": "udp",
+      "timeout": 30,
+      "followRedirect": false
+    }
+  }
+  ],
+  "outbounds": [
+    {
+      "protocol": "vmess",
+      "tag": "detour",
+      "settings": {
+        "vnext": [
+          {
+            "address": "",
+            "port": 0,
+            "users": [
+              {
+                  "id": "",
+                  "alterId": 39
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "sockopt": {
+          "mark": 255
+        },
+        "security": "auto",
+        "network": "ws",
+        "wsSettings": {
+          "path": ""
+        }
+      },
+      "mux": {
+        "enabled": true
+      } 
+    },
+    {
+      "protocol": "freedom",
+      "settings": {},
+      "tag": "direct",
+      "streamSettings": {
+        "sockopt": {
+          "mark": 255
+        }
+      }
+    }
+  ],
+  "dns": {
+    "servers": [
+      "8.8.8.8",
+      "8.8.4.4",
+      "localhost"
+    ]
+  },
+  "routing": {    
+    "domainStrategy": "IPIfNonMatch", 
+    "rules": [
+      {
+        "domain":[
+          "amazon.com",
+          "microsoft.com",
+          "jd.com",
+          "youku.com",
+          "baidu.com",
+          "taobao.com",
+          "tmall.com",
+          "geosite:cn"
+        ],
+        "type": "field",
+        "outboundTag": "direct"
+      },
+      {
+        "type": "field",
+        "ip": [
+          "0.0.0.0/8",
+          "10.0.0.0/8",
+          "100.64.0.0/10",
+          "169.254.0.0/16",
+          "172.16.0.0/12",
+          "192.0.0.0/24",
+          "192.0.2.0/24",
+          "192.168.0.0/16",
+          "198.18.0.0/15",
+          "198.51.100.0/24",
+          "203.0.113.0/24",
+          "188.188.188.188/32",
+          "110.110.110.110/32",
+          "::1/128",
+          "fc00::/7",
+          "fe80::/10"
+        ],
+        "outboundTag": "direct"
+      },
+      {
+        "type": "chinasites",
+        "outboundTag": "direct"
+      },
+      {
+        "type": "chinaip",
+        "outboundTag": "direct"
+      }
+      
+    ]
+  }
 }
     """
-
     cLient_mkcp = json.loads("""
     {
                 "mtu": 1350,
@@ -346,41 +394,34 @@ def gen_client():
                 }
     }
     """)
-
-    mux_enable = json.loads("""
-    {
-            "enabled": true
-    }
-    """)
-
-    mux_disable = json.loads("""
-    {
-            "enabled": false
-    }
-    """)
-
     client = json.loads(client_raw)
     data_file = open("/usr/local/V2ray.Fun/v2ray.config", "r")
     data = json.loads(data_file.read())
     data_file.close()
 
     if data['mux'] == "on":
-        client['outbound']['mux']['enabled'] = True
+        client['outbounds'][0]['mux']['enabled'] = True
     elif data['mux'] == "off":
-        client['outbound']['mux']['enabled'] = False
+        client['outbounds'][0]['mux']['enabled'] = False
 
     if data['domain'] == "none":
-        client['outbound']['settings']['vnext'][0]['address'] = data['ip']
+        client['outbounds'][0]['settings']['vnext'][0]['address'] = data['ip']
     else:
-        client['outbound']['settings']['vnext'][0]['address'] = data['domain']
+        client['outbounds'][0]['settings']['vnext'][0]['address'] = data['domain']
 
-    client['outbound']['settings']['vnext'][0]['port'] = int(data['port'])
-    client['outbound']['settings']['vnext'][0]['users'][0]['id'] = data['uuid']
-    client['outbound']['settings']['vnext'][0]['users'][0]['security'] = data['encrypt']
+    client['outbounds'][0]['settings']['vnext'][0]['port'] = int(data['port'])
+    client['outbounds'][0]['settings']['vnext'][0]['users'][0]['id'] = data['uuid']
+    client['outbounds'][0]['settings']['vnext'][0]['users'][0]['security'] = data['encrypt']
 
 
     if data['trans'] == "websocket":
-        client['outbound']['streamSettings']['network'] = "ws"
+        client['outbounds'][0]['streamSettings']['network'] = "ws"
+        client['outbounds'][0]['streamSettings']['wsSettings']['path'] = "/" + data['path']
+        if data['nginx'] == "on":
+            if data['tls'] == "on":
+                client['outbounds'][0]['settings']['vnext'][0]['port'] = 443
+            else:
+                client['outbounds'][0]['settings']['vnext'][0]['port'] = 80
 
     elif data['trans'].startswith("mkcp"):
         if data['trans'] == "mkcp-srtp":
@@ -390,15 +431,15 @@ def gen_client():
         elif data['trans'] == "mkcp-wechat":
             cLient_mkcp['header']['type'] = "wechat-video"
 
-        client['outbound']['streamSettings']['network'] = "kcp"
-        client['outbound']['streamSettings']['kcpSettings'] = cLient_mkcp
+        client['outbounds'][0]['streamSettings']['network'] = "kcp"
+        client['outbounds'][0]['streamSettings']['kcpSettings'] = cLient_mkcp
 
     elif data['trans'] == "tcp":
-        client['outbound']['streamSettings']['network'] = "tcp"
+        client['outbounds'][0]['streamSettings']['network'] = "tcp"
 
 
     if data['tls'] == "on":
-        client['outbound']['streamSettings']['security'] = "tls"
+        client['outbounds'][0]['streamSettings']['security'] = "tls"
 
     client_file = open("/root/config.json","w")
     client_file.write(json.dumps(client,indent=2))

@@ -272,8 +272,8 @@
 
                                             </div>
                                             <div class="mdui-dialog-actions">
-                                                <button id="confirm_tls" disabled class="mdui-btn mdui-ripple" mdui-dialog-close=""
-                                                        onclick="change_TLS('on');document.getElementById('confirm_tls').setAttribute('disabled','disabled');">确认</button>
+                                                <button id="confirm_tls"  class="mdui-btn mdui-ripple" mdui-dialog-close=""
+                                                        onclick="change_TLS('on')">确认</button>
                                                 <button class="mdui-btn mdui-ripple" mdui-dialog-close=""
                                                         onclick="document.getElementById('confirm_tls').setAttribute('disabled','disabled');">取消</button>
                                             </div>
@@ -300,6 +300,23 @@
                                     </div>
                                     <div class="mdui-col-md-2">
                                         <button onclick="change_mux('off')" class="mdui-btn mdui-btn-raised mdui-btn-dense mdui-color-red-500 mdui-ripple mdui-text-color-white" >
+                                            关闭
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>nginx转发</td>
+                            <td>
+                                <div class="mdui-row">
+                                    <div class="mdui-col-md-6">
+                                        <button onclick="change_nginx('on')" class="mdui-btn mdui-btn-raised mdui-btn-dense mdui-color-green-500 mdui-ripple mdui-text-color-white" >
+                                            开启
+                                        </button>
+                                    </div>
+                                    <div class="mdui-col-md-2">
+                                        <button onclick="change_nginx('off')" class="mdui-btn mdui-btn-raised mdui-btn-dense mdui-color-red-500 mdui-ripple mdui-text-color-white" >
                                             关闭
                                         </button>
                                     </div>
@@ -494,7 +511,22 @@
             message("TLS 已开启")
         }
     }
-
+    function change_nginx(action){
+        if (action === "on")
+        {
+            $.get("/set_nginx",{
+                "action" : "on",
+            });
+            message("nginx转发 已开启，请配置好nginx，并重新下载客户端配置")
+        }
+        else if(action === "off")
+        {
+            $.get("/set_nginx",{
+                "action" : "off",
+            });
+            message("nginx转发 已关闭，请配置好nginx，并重新下载客户端配置")
+        }
+    }
     function change_mux(action) {
         if (action === "on")
         {
@@ -530,7 +562,7 @@
                     document.getElementById('domain-progress').setAttribute('hidden','hidden');
                     if(data === "True")
                     {
-                        document.getElementById('confirm_tls').removeAttribute('disabled');
+                        //document.getElementById('confirm_tls').removeAttribute('disabled');
                     }
                     else
                     {
