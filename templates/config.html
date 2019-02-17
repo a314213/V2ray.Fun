@@ -146,13 +146,17 @@
                             <td>UUID</td>
                             <td>
                                 <div class="mdui-row">
-                                    <div class="mdui-col-md-6">
-                                        <input id="uuid" class="mdui-textfield-input" type="text" readonly="readonly" value="b18d3377-e0bd-49c6-9194-892326c9bbb0" />
+                                    <div class="mdui-col-md-4">
+                                        <input id="uuid" class="mdui-textfield-input" type="text"  value="b18d3377-e0bd-49c6-9194-892326c9bbb0" />
                                     </div>
-                                    <div class="mdui-col-md-1" onclick="change_uuid()">
+                                    
+                                    <div class="mdui-col-md-2" onclick="get_new_uuid()">
                                         <button class="mdui-btn mdui-color-theme-accent mdui-ripple" >
                                             <i class="mdui-icon material-icons">autorenew</i>
                                         </button>
+                                    </div>
+                                    <div class="mdui-col-md-1">
+                                        <button onclick="change_uuid()" class="mdui-btn mdui-btn-raised mdui-btn-dense mdui-color-theme-accent mdui-ripple" >修改UUID</button>
                                     </div>
                                 </div>
                             </td>
@@ -429,14 +433,16 @@
         $("#secret").attr("value", new_secret);
     }
 
+    function get_new_uuid() {
+        $('#uuid').attr("value",uuid());
+    }
+
     function change_uuid() {
-        let new_uuid = uuid();
+        let new_uuid = $('#uuid').val();
         $.get("/set_uuid",{
             "setuuid" : new_uuid
-        })
-
+        });
         message("已生成新UUID");
-        $('#uuid').attr("value",new_uuid);
     }
 
     function change_port() {
